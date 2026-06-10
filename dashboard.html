@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MedMLP 医疗数据实验看板</title>
+  <style>
+    :root {
+      --bg: #f4f7f8;
+      --panel: #ffffff;
+      --ink: #1c2a2e;
+      --muted: #647276;
+      --line: #d8e2e5;
+      --teal: #0f766e;
+      --blue: #2563eb;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --soft: #eef5f5;
+      --shadow: 0 10px 28px rgba(28, 42, 46, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .wrap {
+      width: min(1360px, calc(100vw - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      min-height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: #315257;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    main {
+      padding: 24px 0 40px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid > * {
+      min-width: 0;
+    }
+
+    .kpis {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .kpi {
+      min-height: 112px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .kpi .value {
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi .note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .layout {
+      grid-template-columns: 1.05fr .95fr;
+      align-items: start;
+    }
+
+    .section {
+      padding: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      min-height: 34px;
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    button.active {
+      border-color: var(--teal);
+      background: #e7f4f2;
+      color: #0b5f58;
+      font-weight: 700;
+    }
+
+    .chart {
+      width: 100%;
+      min-height: 260px;
+      overflow: hidden;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .summary-table th:first-child,
+    .summary-table td:first-child {
+      text-align: left;
+    }
+
+    .summary-table th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #fbfcfc;
+    }
+
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+
+    .arch {
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .node {
+      border: 1px solid var(--line);
+      background: #fbfcfc;
+      padding: 12px;
+      min-height: 84px;
+    }
+
+    .node strong {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+    }
+
+    .node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .matrix-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: #fbfcfc;
+    }
+
+    .matrix {
+      display: grid;
+      gap: 2px;
+      padding: 10px;
+      min-width: 360px;
+    }
+
+    .cell {
+      min-width: 36px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #132326;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cell.head {
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .two-col {
+      grid-template-columns: 1fr 1fr;
+      margin-top: 16px;
+    }
+
+    .metric-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      background: #fbfcfc;
+      padding: 12px;
+    }
+
+    .mini div:first-child {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .mini div:last-child {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .foot {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 980px) {
+      .kpis, .layout, .two-col { grid-template-columns: 1fr; }
+      .arch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .topbar { align-items: flex-start; flex-direction: column; padding: 18px 0; }
+    }
+
+    @media (max-width: 620px) {
+      .wrap { width: min(100vw - 24px, 1360px); }
+      .metric-list, .arch { grid-template-columns: 1fr; }
+      .summary-table { font-size: 12px; }
+      h1 { font-size: 23px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap topbar">
+      <div>
+        <h1>MedMLP 医疗数据实验看板</h1>
+        <p class="subtitle">NumPy 自研 MLP 与 PyTorch 基线在四个 MedMNIST 数据集上的训练、评估与架构总览</p>
+      </div>
+      <div class="badge">数据源：notebooks/experiment_results.json</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid kpis" id="kpis"></section>
+
+    <section class="grid layout">
+      <div class="panel section">
+        <div class="section-title">
+          <h2>跨数据集指标对比</h2>
+          <span class="hint">测试集 Accuracy / Macro F1</span>
+        </div>
+        <div id="barChart" class="chart"></div>
+      </div>
+
+      <div class="panel section">
+        <div class="section-title">
+          <h2>实验结果汇总</h2>
+          <span class="hint">NumPy - PyTorch</span>
+        </div>
+        <div class="table-scroll">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>数据集</th>
+                <th>任务</th>
+                <th>样本量</th>
+                <th>NumPy Acc</th>
+                <th>PyTorch Acc</th>
+                <th>差值</th>
+              </tr>
+            </thead>
+            <tbody id="summaryRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two-col">
+      <div class="panel section">
+        <div class="section-title">
+          <h2>训练曲线</h2>
+          <div class="tabs" id="datasetTabs"></div>
+        </div>
+        <div class="metric-list" id="datasetMetrics"></div>
+        <div id="lineChart" class="chart"></div>
+      </div>
+
+      <div class="panel section">
+        <div class="section-title">
+          <h2>NumPy 混淆矩阵</h2>
+          <span class="hint" id="matrixHint"></span>
+        </div>
+        <div class="matrix-wrap">
+          <div class="matrix" id="matrix"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel section" style="margin-top:16px">
+      <div class="section-title">
+        <h2>项目架构读取</h2>
+        <span class="hint">配置驱动、双轨对照、离线图表输出</span>
+      </div>
+      <div class="grid arch">
+        <div class="node"><strong>configs/</strong><span>base_config.yaml 统一管理数据集、网络层宽、优化器、学习率、批大小与输出目录。</span></div>
+        <div class="node"><strong>data/</strong><span>存放 bloodmnist、pathmnist、octmnist、tissuemnist 的 .npz 医疗图像数据。</span></div>
+        <div class="node"><strong>src/</strong><span>NumPy 核心：数据流水线、Dense/ReLU/SoftmaxCE、SGD Momentum、Adam、Accuracy/F1/混淆矩阵。</span></div>
+        <div class="node"><strong>benchmarks/</strong><span>PyTorch MLP 基线，与 NumPy 网络结构对齐，用于实验校验和性能参照。</span></div>
+        <div class="node"><strong>notebooks/</strong><span>训练后生成 PNG 图表与 experiment_results.json，本看板使用其中的评估结果。</span></div>
+      </div>
+      <p class="foot">清理检查：未发现 __pycache__、.ipynb_checkpoints、.pytest_cache、.tmp、.bak、.pyc、.log 等明确临时文件。legacy/ 为历史版本归档，notebooks/ 为实验产物，未作为临时垃圾删除。</p>
+    </section>
+  </main>
+
+  <script>
+    const DATA = {
+      bloodmnist: {
+        label: "BloodMNIST",
+        task: "外周血细胞分类",
+        samples: { train: 11959, val: 1712, test: 3421 },
+        inputDim: 2352,
+        classes: 8,
+        epochs: 20,
+        numpy: {
+          acc: 0.8137971353405437,
+          f1: 0.7892562180072847,
+          losses: [1.5067,0.9773,0.8672,0.8190,0.7348,0.6914,0.6661,0.6441,0.6000,0.5767,0.5824,0.5441,0.5539,0.5198,0.5288,0.5042,0.4901,0.4752,0.5146,0.5038],
+          vals: [0.5859,0.6957,0.6840,0.7208,0.7541,0.7599,0.7804,0.7669,0.7932,0.7944,0.8107,0.7897,0.8043,0.8312,0.8242,0.8259,0.8078,0.8207,0.8078,0.8353],
+          matrix: [[167,7,0,26,10,33,1,0],[1,605,1,4,2,2,9,0],[6,1,242,9,17,8,9,19],[65,32,4,290,28,116,44,0],[5,1,9,15,202,3,8,0],[18,8,1,34,3,214,6,0],[1,26,9,18,5,4,598,5],[0,0,4,0,0,0,0,466]]
+        },
+        pytorch: {
+          acc: 0.7863197895352236,
+          f1: 0.7593469556264855,
+          losses: [1.6122,0.9916,0.8564,0.7778,0.7326,0.6823,0.6711,0.6350,0.6410,0.5803,0.5894,0.5471,0.5439,0.5299,0.5656,0.5410,0.5452,0.5030,0.4967,0.5057],
+          vals: [0.5713,0.6916,0.6396,0.7442,0.7395,0.7629,0.7792,0.7792,0.7664,0.7868,0.7354,0.8084,0.7792,0.7313,0.6834,0.8119,0.7780,0.8178,0.8347,0.8049]
+        }
+      },
+      pathmnist: {
+        label: "PathMNIST",
+        task: "结直肠癌病理分类",
+        samples: { train: 89996, val: 10004, test: 7180 },
+        inputDim: 2352,
+        classes: 9,
+        epochs: 15,
+        numpy: {
+          acc: 0.5951253481894151,
+          f1: 0.5028775147152638,
+          losses: [1.7395,1.4581,1.3823,1.3319,1.3076,1.2833,1.2382,1.2078,1.1797,1.1659,1.1460,1.1311,1.1164,1.1026,1.0930],
+          vals: [0.4228,0.4356,0.5035,0.5147,0.5220,0.5251,0.5185,0.5141,0.5695,0.5442,0.5421,0.5699,0.5938,0.5631,0.5863],
+          matrix: [[1174,109,0,0,22,27,4,0,2],[0,847,0,0,0,0,0,0,0],[0,9,258,0,0,6,0,43,23],[16,16,1,174,112,50,60,3,202],[79,443,1,83,408,6,5,3,7],[0,55,276,1,0,146,0,47,67],[5,7,7,105,41,46,87,34,409],[0,2,104,10,11,45,2,143,104],[3,6,16,66,36,14,44,12,1036]]
+        },
+        pytorch: {
+          acc: 0.5596100278551532,
+          f1: 0.48551206106635114,
+          losses: [1.7851,1.4815,1.3819,1.3416,1.3208,1.2925,1.2842,1.2467,1.2320,1.2114,1.1896,1.1666,1.1436,1.1334,1.1126],
+          vals: [0.3029,0.4149,0.4859,0.4566,0.5028,0.5136,0.5154,0.5266,0.5351,0.4900,0.5510,0.5768,0.5278,0.5354,0.5785]
+        }
+      },
+      octmnist: {
+        label: "OCTMNIST",
+        task: "视网膜 OCT 分类",
+        samples: { train: 97477, val: 10832, test: 1000 },
+        inputDim: 784,
+        classes: 4,
+        epochs: 15,
+        numpy: {
+          acc: 0.592,
+          f1: 0.527918234572012,
+          losses: [0.9477,0.7928,0.7017,0.6471,0.6089,0.5820,0.5633,0.5425,0.5317,0.5190,0.5061,0.4946,0.4851,0.4749,0.4639],
+          vals: [0.6851,0.7344,0.7621,0.7698,0.7862,0.7880,0.7819,0.8083,0.8024,0.8029,0.8067,0.8118,0.8081,0.8214,0.8244],
+          matrix: [[203,23,5,19],[59,148,3,40],[84,8,13,145],[20,1,1,228]]
+        },
+        pytorch: {
+          acc: 0.608,
+          f1: 0.54397136590811,
+          losses: [0.9421,0.7610,0.6793,0.6339,0.6103,0.5865,0.5720,0.5557,0.5422,0.5328,0.5253,0.5166,0.5087,0.5005,0.4932],
+          vals: [0.6960,0.7303,0.7567,0.7734,0.7765,0.7866,0.7898,0.7862,0.8039,0.8058,0.8097,0.8071,0.8103,0.8122,0.8203]
+        }
+      },
+      tissuemnist: {
+        label: "TissueMNIST",
+        task: "组织细胞多分类",
+        samples: { train: 165466, val: 23640, test: 47280 },
+        inputDim: 784,
+        classes: 8,
+        epochs: 15,
+        numpy: {
+          acc: 0.5699027072758037,
+          f1: 0.39660110048731717,
+          losses: [1.4143,1.2827,1.2410,1.2164,1.1958,1.1791,1.1663,1.1541,1.1421,1.1312,1.1219,1.1117,1.1038,1.0948,1.0870],
+          vals: [0.5184,0.5337,0.5428,0.5470,0.5543,0.5547,0.5503,0.5603,0.5582,0.5669,0.5651,0.5678,0.5655,0.5640,0.5666],
+          matrix: [[12310,1,30,315,147,141,1369,852],[1467,2,8,63,56,44,360,233],[227,0,239,446,482,215,21,47],[643,0,137,2336,775,212,184,115],[521,1,157,805,1296,300,178,111],[602,0,101,353,344,479,216,107],[2094,4,15,318,184,166,7160,1260],[1963,1,12,164,130,131,1507,3123]]
+        },
+        pytorch: {
+          acc: 0.5683587140439932,
+          f1: 0.392446411911055,
+          losses: [1.4138,1.2850,1.2450,1.2210,1.2043,1.1913,1.1778,1.1690,1.1598,1.1532,1.1473,1.1416,1.1346,1.1291,1.1236],
+          vals: [0.5209,0.5302,0.5373,0.5471,0.5555,0.5527,0.5562,0.5627,0.5638,0.5642,0.5568,0.5695,0.5576,0.5662,0.5646]
+        }
+      }
+    };
+
+    const names = Object.keys(DATA);
+    let active = "bloodmnist";
+
+    const pct = value => `${(value * 100).toFixed(2)}%`;
+    const fmt = value => value.toLocaleString("zh-CN");
+
+    function init() {
+      renderKpis();
+      renderSummary();
+      renderBars();
+      renderTabs();
+      renderDataset();
+      window.addEventListener("resize", () => {
+        renderBars();
+        renderLine();
+      });
+    }
+
+    function renderKpis() {
+      const totalSamples = names.reduce((sum, key) => {
+        const s = DATA[key].samples;
+        return sum + s.train + s.val + s.test;
+      }, 0);
+      const best = names.map(key => ({ key, acc: DATA[key].numpy.acc })).sort((a, b) => b.acc - a.acc)[0];
+      const meanAcc = names.reduce((sum, key) => sum + DATA[key].numpy.acc, 0) / names.length;
+      const totalEpochs = names.reduce((sum, key) => sum + DATA[key].epochs, 0);
+      const items = [
+        ["覆盖数据集", `${names.length}`, "Blood / Path / OCT / Tissue"],
+        ["总样本量", fmt(totalSamples), "train + val + test"],
+        ["NumPy 平均准确率", pct(meanAcc), "四个数据集测试集均值"],
+        ["最佳 NumPy 表现", pct(DATA[best.key].numpy.acc), DATA[best.key].label]
+      ];
+      document.getElementById("kpis").innerHTML = items.map(([label, value, note]) => `
+        <div class="panel kpi">
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
+          <div class="note">${note} · 共 ${totalEpochs} 个记录 epoch</div>
+        </div>
+      `).join("");
+    }
+
+    function renderSummary() {
+      document.getElementById("summaryRows").innerHTML = names.map(key => {
+        const d = DATA[key];
+        const total = d.samples.train + d.samples.val + d.samples.test;
+        const diff = d.numpy.acc - d.pytorch.acc;
+        const cls = diff >= 0 ? "positive" : "negative";
+        return `<tr>
+          <td>${d.label}</td>
+          <td>${d.task}</td>
+          <td>${fmt(total)}</td>
+          <td>${pct(d.numpy.acc)}</td>
+          <td>${pct(d.pytorch.acc)}</td>
+          <td class="${cls}">${diff >= 0 ? "+" : ""}${pct(diff)}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function svgLine(points, color, width = 2.5) {
+      return `<polyline points="${points}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+
+    function renderBars() {
+      const el = document.getElementById("barChart");
+      const w = Math.max(640, el.clientWidth || 900);
+      const h = 300;
+      const pad = { left: 52, right: 18, top: 18, bottom: 54 };
+      const innerW = w - pad.left - pad.right;
+      const innerH = h - pad.top - pad.bottom;
+      const group = innerW / names.length;
+      const barW = Math.min(28, group / 6);
+      const y = v => pad.top + innerH - v * innerH;
+      let bars = "";
+      let labels = "";
+      names.forEach((key, i) => {
+        const d = DATA[key];
+        const cx = pad.left + group * i + group / 2;
+        const vals = [
+          [d.numpy.acc, varColor("blue"), "N Acc", -barW * 1.8],
+          [d.pytorch.acc, varColor("teal"), "P Acc", -barW * .6],
+          [d.numpy.f1, varColor("green"), "N F1", barW * .6],
+          [d.pytorch.f1, varColor("amber"), "P F1", barW * 1.8]
+        ];
+        vals.forEach(([value, color,, offset]) => {
+          const bh = value * innerH;
+          bars += `<rect x="${cx + offset - barW / 2}" y="${y(value)}" width="${barW}" height="${bh}" fill="${color}" rx="2"/>`;
+        });
+        labels += `<text x="${cx}" y="${h - 24}" text-anchor="middle" font-size="12" fill="#46585d">${d.label}</text>`;
+      });
+      const grid = [0, .25, .5, .75, 1].map(v => `
+        <line x1="${pad.left}" y1="${y(v)}" x2="${w - pad.right}" y2="${y(v)}" stroke="#d8e2e5"/>
+        <text x="${pad.left - 10}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#647276">${Math.round(v * 100)}%</text>
+      `).join("");
+      const legend = [
+        ["NumPy Acc", varColor("blue")], ["PyTorch Acc", varColor("teal")],
+        ["NumPy F1", varColor("green")], ["PyTorch F1", varColor("amber")]
+      ].map(([label, color], i) => {
+        const x = pad.left + i * 116;
+        return `<rect x="${x}" y="${h - 13}" width="10" height="10" fill="${color}"/><text x="${x + 16}" y="${h - 4}" font-size="11" fill="#647276">${label}</text>`;
+      }).join("");
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="跨数据集指标柱状图">${grid}${bars}${labels}${legend}</svg>`;
+    }
+
+    function renderTabs() {
+      document.getElementById("datasetTabs").innerHTML = names.map(key => {
+        const d = DATA[key];
+        return `<button type="button" class="${key === active ? "active" : ""}" data-key="${key}">${d.label}</button>`;
+      }).join("");
+      document.querySelectorAll("#datasetTabs button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          active = btn.dataset.key;
+          renderTabs();
+          renderDataset();
+        });
+      });
+    }
+
+    function renderDataset() {
+      const d = DATA[active];
+      const total = d.samples.train + d.samples.val + d.samples.test;
+      const diff = d.numpy.acc - d.pytorch.acc;
+      document.getElementById("datasetMetrics").innerHTML = [
+        ["任务", d.task],
+        ["输入维度 / 类别", `${d.inputDim} / ${d.classes}`],
+        ["样本量", fmt(total)],
+        ["NumPy Accuracy", pct(d.numpy.acc)],
+        ["NumPy Macro F1", pct(d.numpy.f1)],
+        ["Acc 差值", `${diff >= 0 ? "+" : ""}${pct(diff)}`]
+      ].map(([k, v]) => `<div class="mini"><div>${k}</div><div>${v}</div></div>`).join("");
+      document.getElementById("matrixHint").textContent = `${d.label} · ${d.classes} 类`;
+      renderLine();
+      renderMatrix();
+    }
+
+    function renderLine() {
+      const el = document.getElementById("lineChart");
+      const d = DATA[active];
+      const w = Math.max(620, el.clientWidth || 820);
+      const h = 300;
+      const pad = { left: 46, right: 18, top: 20, bottom: 44 };
+      const innerW = w - pad.left - pad.right;
+      const innerH = h - pad.top - pad.bottom;
+      const maxLoss = Math.max(...d.numpy.losses, ...d.pytorch.losses);
+      const x = (i, n) => pad.left + (n === 1 ? 0 : i / (n - 1)) * innerW;
+      const yAcc = v => pad.top + innerH - v * innerH;
+      const yLoss = v => pad.top + innerH - (v / maxLoss) * innerH;
+      const points = arr => arr.map((v, i) => `${x(i, arr.length)},${yLoss(v)}`).join(" ");
+      const accPoints = arr => arr.map((v, i) => `${x(i, arr.length)},${yAcc(v)}`).join(" ");
+      const grid = [0, .25, .5, .75, 1].map(v => `
+        <line x1="${pad.left}" y1="${yAcc(v)}" x2="${w - pad.right}" y2="${yAcc(v)}" stroke="#d8e2e5"/>
+        <text x="${pad.left - 8}" y="${yAcc(v) + 4}" text-anchor="end" font-size="11" fill="#647276">${Math.round(v * 100)}%</text>
+      `).join("");
+      const legend = [
+        ["NumPy Loss", varColor("blue")], ["PyTorch Loss", varColor("teal")],
+        ["NumPy Val Acc", varColor("green")], ["PyTorch Val Acc", varColor("amber")]
+      ].map(([label, color], i) => {
+        const lx = pad.left + i * 124;
+        return `<line x1="${lx}" y1="${h - 12}" x2="${lx + 18}" y2="${h - 12}" stroke="${color}" stroke-width="3"/><text x="${lx + 24}" y="${h - 8}" font-size="11" fill="#647276">${label}</text>`;
+      }).join("");
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="训练曲线">
+        ${grid}
+        ${svgLine(points(d.numpy.losses), varColor("blue"))}
+        ${svgLine(points(d.pytorch.losses), varColor("teal"))}
+        ${svgLine(accPoints(d.numpy.vals), varColor("green"), 2)}
+        ${svgLine(accPoints(d.pytorch.vals), varColor("amber"), 2)}
+        <text x="${pad.left}" y="14" font-size="11" fill="#647276">Loss 按当前数据集最大值归一化，Accuracy 使用 0-100% 标尺</text>
+        ${legend}
+      </svg>`;
+    }
+
+    function renderMatrix() {
+      const d = DATA[active];
+      const matrix = d.numpy.matrix;
+      const n = matrix.length;
+      const max = Math.max(...matrix.flat());
+      const el = document.getElementById("matrix");
+      el.style.gridTemplateColumns = `repeat(${n + 1}, minmax(36px, 1fr))`;
+      let html = `<div class="cell head">T/P</div>`;
+      for (let i = 0; i < n; i++) html += `<div class="cell head">${i}</div>`;
+      matrix.forEach((row, r) => {
+        html += `<div class="cell head">${r}</div>`;
+        row.forEach(value => {
+          const alpha = .08 + .82 * (value / max);
+          html += `<div class="cell" style="background: rgba(15, 118, 110, ${alpha.toFixed(3)})">${value}</div>`;
+        });
+      });
+      el.innerHTML = html;
+    }
+
+    function varColor(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+    }
+
+    init();
+  </script>
+</body>
+</html>

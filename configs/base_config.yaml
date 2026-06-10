@@ -1,0 +1,36 @@
+# =============================================================================
+# MedMLP 双轨训练配置文件
+# =============================================================================
+
+# 数据集配置
+data:
+  dataset: "tissuemnist"         # 可选: bloodmnist, pathmnist, octmnist, tissuemnist
+  data_dir: "data"               # 数据目录（相对路径）
+
+# 网络架构（NumPy 自研 MLP 与 PyTorch 基准共用）
+model:
+  hidden_layers: [256, 128]      # 隐藏层神经元数，列表形式
+  activation: "relu"             # 激活函数
+
+# 训练超参数
+training:
+  epochs: 30
+  batch_size: 128
+  learning_rate: 0.001
+  optimizer: "adam"              # 可选: sgd_momentum, adam
+  l2_lambda: 0.0001             # L2 正则化系数
+
+# SGD Momentum 专用参数
+sgd:
+  momentum: 0.9
+
+# Adam 专用参数
+adam:
+  beta1: 0.9
+  beta2: 0.999
+  epsilon: 1.0e-8
+
+# 输出配置
+output:
+  figures_dir: "notebooks"       # 图表输出目录
+  print_every: 5                 # 每隔多少 epoch 打印一次
