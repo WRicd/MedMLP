@@ -4,20 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MedMLP 医疗数据实验看板</title>
+  
+  <!-- Modern premium typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg: #f4f7f8;
-      --panel: #ffffff;
-      --ink: #1c2a2e;
-      --muted: #647276;
-      --line: #d8e2e5;
-      --teal: #0f766e;
-      --blue: #2563eb;
-      --green: #15803d;
-      --amber: #b45309;
-      --red: #b91c1c;
-      --soft: #eef5f5;
-      --shadow: 0 10px 28px rgba(28, 42, 46, .08);
+      --bg: #090d16;             /* Ultra deep dark background */
+      --panel: #111827;          /* Sleek dark panel */
+      --panel-hover: #1e293b;    /* Highlight card hover state */
+      --ink: #f8fafc;            /* Bright slate text */
+      --muted: #94a3b8;          /* Muted grey text */
+      --line: #1e293b;           /* Border / grid line */
+      --teal: #14b8a6;           /* Teal for PyTorch */
+      --blue: #3b82f6;           /* Blue for NumPy */
+      --green: #10b981;          /* Emerald Green */
+      --amber: #f59e0b;          /* Vibrant Amber */
+      --red: #ef4444;            /* Rose Red */
+      --soft: rgba(255, 255, 255, 0.03); /* Soft background */
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
     }
 
     * { box-sizing: border-box; }
@@ -26,13 +33,24 @@
       margin: 0;
       background: var(--bg);
       color: var(--ink);
-      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
-      letter-spacing: 0;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      letter-spacing: -0.011em;
+      line-height: 1.5;
+      opacity: 0;
+      animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
     header {
-      background: #ffffff;
+      background: rgba(17, 24, 39, 0.75);
       border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .wrap {
@@ -41,46 +59,54 @@
     }
 
     .topbar {
-      min-height: 96px;
+      min-height: 80px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 24px;
+      padding: 12px 0;
     }
 
     h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-      line-height: 1.2;
-      font-weight: 700;
+      margin: 0 0 4px;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 400;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      height: 34px;
-      padding: 0 12px;
-      border: 1px solid var(--line);
-      background: var(--soft);
-      color: #315257;
-      font-size: 13px;
+      height: 32px;
+      padding: 0 14px;
+      border: 1px solid rgba(20, 184, 166, 0.2);
+      border-radius: 9999px;
+      background: rgba(20, 184, 166, 0.08);
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 500;
       white-space: nowrap;
+      box-shadow: 0 0 15px rgba(20, 184, 166, 0.05);
     }
 
     main {
-      padding: 24px 0 40px;
+      padding: 32px 0 60px;
     }
 
     .grid {
       display: grid;
-      gap: 16px;
+      gap: 20px;
     }
 
     .grid > * {
@@ -89,48 +115,84 @@
 
     .kpis {
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
+      border-radius: 12px;
       box-shadow: var(--shadow);
       min-width: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .panel:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.8);
     }
 
     .kpi {
-      min-height: 112px;
-      padding: 18px;
+      min-height: 120px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+    }
+    .kpi:nth-child(2)::before {
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+    }
+    .kpi:nth-child(3)::before {
+      background: linear-gradient(90deg, var(--green), #34d399);
+    }
+    .kpi:nth-child(4)::before {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
     }
 
     .kpi .label {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .kpi .value {
-      font-size: 28px;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 32px;
       line-height: 1.1;
-      font-weight: 700;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 8px 0;
       font-variant-numeric: tabular-nums;
     }
 
     .kpi .note {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .layout {
-      grid-template-columns: 1.05fr .95fr;
+      grid-template-columns: 1.12fr 0.88fr;
       align-items: start;
+      margin-bottom: 20px;
     }
 
     .section {
-      padding: 18px;
+      padding: 24px;
     }
 
     .section-title {
@@ -138,14 +200,16 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 20px;
     }
 
     h2 {
       margin: 0;
-      font-size: 17px;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 18px;
       line-height: 1.25;
       font-weight: 700;
+      color: #ffffff;
     }
 
     .hint {
@@ -154,33 +218,42 @@
     }
 
     .tabs {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
+      background: #1f2937;
+      padding: 4px;
+      border-radius: 8px;
+      display: inline-flex;
+      gap: 2px;
     }
 
     button {
       appearance: none;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--ink);
-      min-height: 34px;
-      padding: 0 12px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      min-height: 30px;
+      padding: 0 14px;
       font: inherit;
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
       cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
     }
 
     button.active {
-      border-color: var(--teal);
-      background: #e7f4f2;
-      color: #0b5f58;
-      font-weight: 700;
+      background: #374151;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .chart {
       width: 100%;
-      min-height: 260px;
+      min-height: 280px;
       overflow: hidden;
     }
 
@@ -188,6 +261,15 @@
       display: block;
       width: 100%;
       height: auto;
+    }
+
+    /* SVG Hover transition effects */
+    svg rect {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    svg rect:hover {
+      opacity: 0.95;
+      filter: brightness(1.1);
     }
 
     .summary-table {
@@ -200,12 +282,13 @@
       width: 100%;
       overflow-x: auto;
       border: 1px solid var(--line);
-      border-bottom: 0;
+      border-radius: 8px;
+      background: rgba(17, 24, 39, 0.4);
     }
 
     .summary-table th,
     .summary-table td {
-      padding: 11px 10px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--line);
       text-align: right;
       font-variant-numeric: tabular-nums;
@@ -220,103 +303,183 @@
     .summary-table th {
       color: var(--muted);
       font-weight: 600;
-      background: #fbfcfc;
+      background: rgba(31, 41, 55, 0.5);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
     }
 
-    .positive { color: var(--green); }
-    .negative { color: var(--red); }
+    .summary-table tbody tr {
+      transition: background 0.2s ease;
+    }
+
+    .summary-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .summary-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .diff-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .diff-badge.positive {
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+    }
+    .diff-badge.negative {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+
+    .two-col {
+      grid-template-columns: 1.05fr 0.95fr;
+      margin-top: 20px;
+    }
+
+    .metric-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      background: rgba(31, 41, 55, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      transition: border-color 0.2s ease;
+    }
+
+    .mini:hover {
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .mini div:first-child {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 6px;
+    }
+
+    .mini div:last-child {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
 
     .arch {
       grid-template-columns: repeat(5, minmax(120px, 1fr));
-      gap: 10px;
+      gap: 12px;
     }
 
     .node {
       border: 1px solid var(--line);
-      background: #fbfcfc;
-      padding: 12px;
-      min-height: 84px;
+      background: rgba(17, 24, 39, 0.5);
+      padding: 16px;
+      border-radius: 10px;
+      min-height: 96px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .node:hover {
+      border-color: var(--blue);
+      background: rgba(31, 41, 55, 0.6);
+      transform: translateY(-2px);
     }
 
     .node strong {
-      display: block;
-      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
       font-size: 13px;
+      color: #60a5fa;
+    }
+
+    .node strong svg {
+      flex-shrink: 0;
+      color: #60a5fa;
     }
 
     .node span {
       display: block;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.45;
     }
 
     .matrix-wrap {
       overflow: auto;
       border: 1px solid var(--line);
-      background: #fbfcfc;
+      border-radius: 8px;
+      background: rgba(17, 24, 39, 0.4);
     }
 
     .matrix {
       display: grid;
-      gap: 2px;
-      padding: 10px;
+      gap: 3px;
+      padding: 12px;
       min-width: 360px;
     }
 
     .cell {
-      min-width: 36px;
-      height: 34px;
+      min-width: 38px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 11px;
-      color: #132326;
       font-variant-numeric: tabular-nums;
+      border-radius: 4px;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .cell.head {
       background: transparent;
       color: var(--muted);
       font-weight: 700;
+      font-size: 10px;
     }
 
-    .two-col {
-      grid-template-columns: 1fr 1fr;
-      margin-top: 16px;
+    .cell:not(.head) {
+      cursor: crosshair;
     }
 
-    .metric-list {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 14px;
+    .cell:not(.head):hover {
+      transform: scale(1.12);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      z-index: 10;
+      outline: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    .mini {
-      border: 1px solid var(--line);
-      background: #fbfcfc;
-      padding: 12px;
+    /* Custom Webkit scrollbar for premium look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
     }
-
-    .mini div:first-child {
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 7px;
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
     }
-
-    .mini div:last-child {
-      font-size: 18px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 4px;
     }
-
-    .foot {
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-      overflow-wrap: anywhere;
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
     }
 
     @media (max-width: 980px) {
@@ -329,7 +492,7 @@
       .wrap { width: min(100vw - 24px, 1360px); }
       .metric-list, .arch { grid-template-columns: 1fr; }
       .summary-table { font-size: 12px; }
-      h1 { font-size: 23px; }
+      h1 { font-size: 20px; }
     }
   </style>
 </head>
@@ -359,7 +522,7 @@
       <div class="panel section">
         <div class="section-title">
           <h2>实验结果汇总</h2>
-          <span class="hint">NumPy - PyTorch</span>
+          <span class="hint">NumPy - PyTorch 对照组</span>
         </div>
         <div class="table-scroll">
           <table class="summary-table">
@@ -400,19 +563,48 @@
       </div>
     </section>
 
-    <section class="panel section" style="margin-top:16px">
+    <section class="panel section" style="margin-top:20px">
       <div class="section-title">
         <h2>项目架构读取</h2>
         <span class="hint">配置驱动、双轨对照、离线图表输出</span>
       </div>
       <div class="grid arch">
-        <div class="node"><strong>configs/</strong><span>base_config.yaml 统一管理数据集、网络层宽、优化器、学习率、批大小与输出目录。</span></div>
-        <div class="node"><strong>data/</strong><span>存放 bloodmnist、pathmnist、octmnist、tissuemnist 的 .npz 医疗图像数据。</span></div>
-        <div class="node"><strong>src/</strong><span>NumPy 核心：数据流水线、Dense/ReLU/SoftmaxCE、SGD Momentum、Adam、Accuracy/F1/混淆矩阵。</span></div>
-        <div class="node"><strong>benchmarks/</strong><span>PyTorch MLP 基线，与 NumPy 网络结构对齐，用于实验校验和性能参照。</span></div>
-        <div class="node"><strong>notebooks/</strong><span>训练后生成 PNG 图表与 experiment_results.json，本看板使用其中的评估结果。</span></div>
+        <div class="node">
+          <strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            configs/
+          </strong>
+          <span>base_config.yaml 统一管理数据集、网络层宽、优化器、学习率、批大小与输出目录。</span>
+        </div>
+        <div class="node">
+          <strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            data/
+          </strong>
+          <span>存放 bloodmnist、pathmnist、octmnist、tissuemnist 的 .npz 医疗图像数据。</span>
+        </div>
+        <div class="node">
+          <strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            src/
+          </strong>
+          <span>NumPy 核心：数据流水线、Dense/ReLU/SoftmaxCE、SGD Momentum、Adam、Accuracy/F1/混淆矩阵。</span>
+        </div>
+        <div class="node">
+          <strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            benchmarks/
+          </strong>
+          <span>PyTorch MLP 基线，与 NumPy 网络结构对齐，用于实验校验和性能参照。</span>
+        </div>
+        <div class="node">
+          <strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            notebooks/
+          </strong>
+          <span>训练后生成 PNG 图表与 experiment_results.json，本看板使用其中的评估结果。</span>
+        </div>
       </div>
-      <p class="foot">清理检查：未发现 __pycache__、.ipynb_checkpoints、.pytest_cache、.tmp、.bak、.pyc、.log 等明确临时文件。legacy/ 为历史版本归档，notebooks/ 为实验产物，未作为临时垃圾删除。</p>
     </section>
   </main>
 
@@ -477,7 +669,7 @@
         pytorch: {
           acc: 0.608,
           f1: 0.54397136590811,
-          losses: [0.9421,0.7610,0.6793,0.6339,0.6103,0.5865,0.5720,0.5557,0.5422,0.5328,0.5253,0.5166,0.5087,0.5005,0.4932],
+          losses: [0.9421,0.7610,0.6793,0.6339,0.6103,0.5865,0.5720,0.5557,0.5422,0.5328,0.5253,0.5166,0.5005,0.4932],
           vals: [0.6960,0.7303,0.7567,0.7734,0.7765,0.7866,0.7898,0.7862,0.8039,0.8058,0.8097,0.8071,0.8103,0.8122,0.8203]
         }
       },
@@ -552,12 +744,12 @@
         const diff = d.numpy.acc - d.pytorch.acc;
         const cls = diff >= 0 ? "positive" : "negative";
         return `<tr>
-          <td>${d.label}</td>
+          <td style="font-weight: 600; color: #ffffff;">${d.label}</td>
           <td>${d.task}</td>
-          <td>${fmt(total)}</td>
-          <td>${pct(d.numpy.acc)}</td>
-          <td>${pct(d.pytorch.acc)}</td>
-          <td class="${cls}">${diff >= 0 ? "+" : ""}${pct(diff)}</td>
+          <td style="color: #cbd5e1;">${fmt(total)}</td>
+          <td style="color: #60a5fa; font-weight: 600;">${pct(d.numpy.acc)}</td>
+          <td style="color: #2dd4bf; font-weight: 600;">${pct(d.pytorch.acc)}</td>
+          <td><span class="diff-badge ${cls}">${diff >= 0 ? "+" : ""}${pct(diff)}</span></td>
         </tr>`;
       }).join("");
     }
@@ -582,29 +774,53 @@
         const d = DATA[key];
         const cx = pad.left + group * i + group / 2;
         const vals = [
-          [d.numpy.acc, varColor("blue"), "N Acc", -barW * 1.8],
-          [d.pytorch.acc, varColor("teal"), "P Acc", -barW * .6],
-          [d.numpy.f1, varColor("green"), "N F1", barW * .6],
-          [d.pytorch.f1, varColor("amber"), "P F1", barW * 1.8]
+          [d.numpy.acc, "url(#grad-numpy-acc)", "N Acc", -barW * 1.8],
+          [d.pytorch.acc, "url(#grad-pytorch-acc)", "P Acc", -barW * .6],
+          [d.numpy.f1, "url(#grad-numpy-f1)", "N F1", barW * .6],
+          [d.pytorch.f1, "url(#grad-pytorch-f1)", "P F1", barW * 1.8]
         ];
         vals.forEach(([value, color,, offset]) => {
           const bh = value * innerH;
-          bars += `<rect x="${cx + offset - barW / 2}" y="${y(value)}" width="${barW}" height="${bh}" fill="${color}" rx="2"/>`;
+          bars += `<rect x="${cx + offset - barW / 2}" y="${y(value)}" width="${barW}" height="${bh}" fill="${color}" rx="3"/>`;
         });
-        labels += `<text x="${cx}" y="${h - 24}" text-anchor="middle" font-size="12" fill="#46585d">${d.label}</text>`;
+        labels += `<text x="${cx}" y="${h - 24}" text-anchor="middle" font-size="12" fill="#94a3b8" font-family="'Inter', sans-serif">${d.label}</text>`;
       });
+
+      const defs = `
+        <defs>
+          <linearGradient id="grad-numpy-acc" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#1d4ed8"/>
+          </linearGradient>
+          <linearGradient id="grad-pytorch-acc" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#06b6d4"/>
+            <stop offset="100%" stop-color="#0891b2"/>
+          </linearGradient>
+          <linearGradient id="grad-numpy-f1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10b981"/>
+            <stop offset="100%" stop-color="#047857"/>
+          </linearGradient>
+          <linearGradient id="grad-pytorch-f1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f59e0b"/>
+            <stop offset="100%" stop-color="#d97706"/>
+          </linearGradient>
+        </defs>
+      `;
+
       const grid = [0, .25, .5, .75, 1].map(v => `
-        <line x1="${pad.left}" y1="${y(v)}" x2="${w - pad.right}" y2="${y(v)}" stroke="#d8e2e5"/>
-        <text x="${pad.left - 10}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#647276">${Math.round(v * 100)}%</text>
+        <line x1="${pad.left}" y1="${y(v)}" x2="${w - pad.right}" y2="${y(v)}" stroke="#1e293b" stroke-dasharray="3,3"/>
+        <text x="${pad.left - 10}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#94a3b8" font-family="'Inter', sans-serif">${Math.round(v * 100)}%</text>
       `).join("");
+      
       const legend = [
-        ["NumPy Acc", varColor("blue")], ["PyTorch Acc", varColor("teal")],
-        ["NumPy F1", varColor("green")], ["PyTorch F1", varColor("amber")]
+        ["NumPy Acc", "#3b82f6"], ["PyTorch Acc", "#06b6d4"],
+        ["NumPy F1", "#10b981"], ["PyTorch F1", "#f59e0b"]
       ].map(([label, color], i) => {
-        const x = pad.left + i * 116;
-        return `<rect x="${x}" y="${h - 13}" width="10" height="10" fill="${color}"/><text x="${x + 16}" y="${h - 4}" font-size="11" fill="#647276">${label}</text>`;
+        const x = pad.left + i * 124;
+        return `<rect x="${x}" y="${h - 13}" width="10" height="10" fill="${color}" rx="2"/><text x="${x + 16}" y="${h - 4}" font-size="11" fill="#94a3b8" font-family="'Inter', sans-serif">${label}</text>`;
       }).join("");
-      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="跨数据集指标柱状图">${grid}${bars}${labels}${legend}</svg>`;
+
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="跨数据集指标柱状图">${defs}${grid}${bars}${labels}${legend}</svg>`;
     }
 
     function renderTabs() {
@@ -652,24 +868,77 @@
       const yLoss = v => pad.top + innerH - (v / maxLoss) * innerH;
       const points = arr => arr.map((v, i) => `${x(i, arr.length)},${yLoss(v)}`).join(" ");
       const accPoints = arr => arr.map((v, i) => `${x(i, arr.length)},${yAcc(v)}`).join(" ");
+      
+      const areaPoints = (arr, yFunc) => {
+        if (!arr.length) return "";
+        const firstX = x(0, arr.length);
+        const lastX = x(arr.length - 1, arr.length);
+        const baseY = pad.top + innerH;
+        let pts = `${firstX},${baseY} `;
+        arr.forEach((v, i) => {
+          pts += `${x(i, arr.length)},${yFunc(v)} `;
+        });
+        pts += `${lastX},${baseY}`;
+        return pts;
+      };
+
+      const defs = `
+        <defs>
+          <linearGradient id="grad-area-numpy-loss" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+          </linearGradient>
+          <linearGradient id="grad-area-pytorch-loss" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"/>
+          </linearGradient>
+          <linearGradient id="grad-area-numpy-acc" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10b981" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+          </linearGradient>
+          <linearGradient id="grad-area-pytorch-acc" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+      `;
+
       const grid = [0, .25, .5, .75, 1].map(v => `
-        <line x1="${pad.left}" y1="${yAcc(v)}" x2="${w - pad.right}" y2="${yAcc(v)}" stroke="#d8e2e5"/>
-        <text x="${pad.left - 8}" y="${yAcc(v) + 4}" text-anchor="end" font-size="11" fill="#647276">${Math.round(v * 100)}%</text>
+        <line x1="${pad.left}" y1="${yAcc(v)}" x2="${w - pad.right}" y2="${yAcc(v)}" stroke="#1e293b" stroke-dasharray="3,3"/>
+        <text x="${pad.left - 8}" y="${yAcc(v) + 4}" text-anchor="end" font-size="11" fill="#94a3b8" font-family="'Inter', sans-serif">${Math.round(v * 100)}%</text>
       `).join("");
+
+      const drawMarkers = (arr, yFunc, color) => {
+        return arr.map((v, i) => `<circle cx="${x(i, arr.length)}" cy="${yFunc(v)}" r="3" fill="${color}" stroke="#111827" stroke-width="1"/>`).join("");
+      };
+
       const legend = [
-        ["NumPy Loss", varColor("blue")], ["PyTorch Loss", varColor("teal")],
-        ["NumPy Val Acc", varColor("green")], ["PyTorch Val Acc", varColor("amber")]
+        ["NumPy Loss", "#3b82f6"], ["PyTorch Loss", "#06b6d4"],
+        ["NumPy Val Acc", "#10b981"], ["PyTorch Val Acc", "#f59e0b"]
       ].map(([label, color], i) => {
-        const lx = pad.left + i * 124;
-        return `<line x1="${lx}" y1="${h - 12}" x2="${lx + 18}" y2="${h - 12}" stroke="${color}" stroke-width="3"/><text x="${lx + 24}" y="${h - 8}" font-size="11" fill="#647276">${label}</text>`;
+        const lx = pad.left + i * 132;
+        return `<line x1="${lx}" y1="${h - 12}" x2="${lx + 18}" y2="${h - 12}" stroke="${color}" stroke-width="3" stroke-linecap="round"/><text x="${lx + 24}" y="${h - 8}" font-size="11" fill="#94a3b8" font-family="'Inter', sans-serif">${label}</text>`;
       }).join("");
+
       el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="训练曲线">
+        ${defs}
         ${grid}
-        ${svgLine(points(d.numpy.losses), varColor("blue"))}
-        ${svgLine(points(d.pytorch.losses), varColor("teal"))}
-        ${svgLine(accPoints(d.numpy.vals), varColor("green"), 2)}
-        ${svgLine(accPoints(d.pytorch.vals), varColor("amber"), 2)}
-        <text x="${pad.left}" y="14" font-size="11" fill="#647276">Loss 按当前数据集最大值归一化，Accuracy 使用 0-100% 标尺</text>
+        <polygon points="${areaPoints(d.numpy.losses, yLoss)}" fill="url(#grad-area-numpy-loss)"/>
+        <polygon points="${areaPoints(d.pytorch.losses, yLoss)}" fill="url(#grad-area-pytorch-loss)"/>
+        <polygon points="${areaPoints(d.numpy.vals, yAcc)}" fill="url(#grad-area-numpy-acc)"/>
+        <polygon points="${areaPoints(d.pytorch.vals, yAcc)}" fill="url(#grad-area-pytorch-acc)"/>
+        
+        ${svgLine(points(d.numpy.losses), "#3b82f6", 2.5)}
+        ${svgLine(points(d.pytorch.losses), "#06b6d4", 2.5)}
+        ${svgLine(accPoints(d.numpy.vals), "#10b981", 2)}
+        ${svgLine(accPoints(d.pytorch.vals), "#f59e0b", 2)}
+        
+        ${drawMarkers(d.numpy.losses, yLoss, "#3b82f6")}
+        ${drawMarkers(d.pytorch.losses, yLoss, "#06b6d4")}
+        ${drawMarkers(d.numpy.vals, yAcc, "#10b981")}
+        ${drawMarkers(d.pytorch.vals, yAcc, "#f59e0b")}
+        
+        <text x="${pad.left}" y="14" font-size="11" fill="#94a3b8" font-family="'Inter', sans-serif">Loss 按当前数据集最大值归一化，Accuracy 标尺为 0-100%</text>
         ${legend}
       </svg>`;
     }
@@ -681,13 +950,18 @@
       const max = Math.max(...matrix.flat());
       const el = document.getElementById("matrix");
       el.style.gridTemplateColumns = `repeat(${n + 1}, minmax(36px, 1fr))`;
+      
       let html = `<div class="cell head">T/P</div>`;
       for (let i = 0; i < n; i++) html += `<div class="cell head">${i}</div>`;
+      
       matrix.forEach((row, r) => {
         html += `<div class="cell head">${r}</div>`;
         row.forEach(value => {
           const alpha = .08 + .82 * (value / max);
-          html += `<div class="cell" style="background: rgba(15, 118, 110, ${alpha.toFixed(3)})">${value}</div>`;
+          // High contrast text color calculation: dark text for high alpha backgrounds, light text for low alpha backgrounds
+          const textCol = alpha > 0.55 ? "#090d16" : "#cbd5e1";
+          const fontWeight = alpha > 0.4 ? "600" : "400";
+          html += `<div class="cell" style="background: rgba(20, 184, 166, ${alpha.toFixed(3)}); color: ${textCol}; font-weight: ${fontWeight};">${value}</div>`;
         });
       });
       el.innerHTML = html;
