@@ -84,22 +84,6 @@
       font-weight: 400;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      height: 32px;
-      padding: 0 14px;
-      border: 1px solid rgba(20, 184, 166, 0.2);
-      border-radius: 9999px;
-      background: rgba(20, 184, 166, 0.08);
-      color: #2dd4bf;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      box-shadow: 0 0 15px rgba(20, 184, 166, 0.05);
-    }
-
     main {
       padding: 32px 0 60px;
     }
@@ -115,7 +99,7 @@
 
     .kpis {
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .panel {
@@ -185,10 +169,11 @@
       font-size: 11px;
     }
 
-    .layout {
-      grid-template-columns: 1.12fr 0.88fr;
-      align-items: start;
-      margin-bottom: 20px;
+    .content-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 24px;
     }
 
     .section {
@@ -253,7 +238,7 @@
 
     .chart {
       width: 100%;
-      min-height: 280px;
+      min-height: 350px;
       overflow: hidden;
     }
 
@@ -288,7 +273,7 @@
 
     .summary-table th,
     .summary-table td {
-      padding: 12px 14px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--line);
       text-align: right;
       font-variant-numeric: tabular-nums;
@@ -337,11 +322,6 @@
     .diff-badge.negative {
       background: rgba(239, 68, 68, 0.1);
       color: #f87171;
-    }
-
-    .two-col {
-      grid-template-columns: 1.05fr 0.95fr;
-      margin-top: 20px;
     }
 
     .metric-list {
@@ -402,16 +382,9 @@
     }
 
     .node strong {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: block;
       margin-bottom: 8px;
       font-size: 13px;
-      color: #60a5fa;
-    }
-
-    .node strong svg {
-      flex-shrink: 0;
       color: #60a5fa;
     }
 
@@ -427,13 +400,16 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: rgba(17, 24, 39, 0.4);
+      display: flex;
+      justify-content: center;
     }
 
     .matrix {
       display: grid;
       gap: 3px;
-      padding: 12px;
-      min-width: 360px;
+      padding: 16px;
+      width: 100%;
+      max-width: 540px;
     }
 
     .cell {
@@ -483,7 +459,7 @@
     }
 
     @media (max-width: 980px) {
-      .kpis, .layout, .two-col { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: 1fr; }
       .arch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .topbar { align-items: flex-start; flex-direction: column; padding: 18px 0; }
     }
@@ -500,17 +476,17 @@
   <header>
     <div class="wrap topbar">
       <div>
-        <h1>MedMLP 医疗数据实验看板</h1>
+        <h1>MedMLP 医疗数据 experiment 看板</h1>
         <p class="subtitle">NumPy 自研 MLP 与 PyTorch 基线在四个 MedMNIST 数据集上的训练、评估与架构总览</p>
       </div>
-      <div class="badge">数据源：notebooks/experiment_results.json</div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="grid kpis" id="kpis"></section>
 
-    <section class="grid layout">
+    <section class="content-stack">
+      <!-- 1. 跨数据集指标对比 (Bar Chart) -->
       <div class="panel section">
         <div class="section-title">
           <h2>跨数据集指标对比</h2>
@@ -519,6 +495,7 @@
         <div id="barChart" class="chart"></div>
       </div>
 
+      <!-- 2. 实验结果汇总 (Summary Table) -->
       <div class="panel section">
         <div class="section-title">
           <h2>实验结果汇总</h2>
@@ -540,9 +517,8 @@
           </table>
         </div>
       </div>
-    </section>
 
-    <section class="grid two-col">
+      <!-- 3. 训练曲线 (Line Chart) -->
       <div class="panel section">
         <div class="section-title">
           <h2>训练曲线</h2>
@@ -552,6 +528,7 @@
         <div id="lineChart" class="chart"></div>
       </div>
 
+      <!-- 4. NumPy 混淆矩阵 (Confusion Matrix) -->
       <div class="panel section">
         <div class="section-title">
           <h2>NumPy 混淆矩阵</h2>
@@ -570,38 +547,23 @@
       </div>
       <div class="grid arch">
         <div class="node">
-          <strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            configs/
-          </strong>
+          <strong>configs/</strong>
           <span>base_config.yaml 统一管理数据集、网络层宽、优化器、学习率、批大小与输出目录。</span>
         </div>
         <div class="node">
-          <strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            data/
-          </strong>
+          <strong>data/</strong>
           <span>存放 bloodmnist、pathmnist、octmnist、tissuemnist 的 .npz 医疗图像数据。</span>
         </div>
         <div class="node">
-          <strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            src/
-          </strong>
+          <strong>src/</strong>
           <span>NumPy 核心：数据流水线、Dense/ReLU/SoftmaxCE、SGD Momentum、Adam、Accuracy/F1/混淆矩阵。</span>
         </div>
         <div class="node">
-          <strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            benchmarks/
-          </strong>
+          <strong>benchmarks/</strong>
           <span>PyTorch MLP 基线，与 NumPy 网络结构对齐，用于实验校验和性能参照。</span>
         </div>
         <div class="node">
-          <strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            notebooks/
-          </strong>
+          <strong>notebooks/</strong>
           <span>训练后生成 PNG 图表与 experiment_results.json，本看板使用其中的评估结果。</span>
         </div>
       </div>
@@ -761,7 +723,7 @@
     function renderBars() {
       const el = document.getElementById("barChart");
       const w = Math.max(640, el.clientWidth || 900);
-      const h = 300;
+      const h = 350;
       const pad = { left: 52, right: 18, top: 18, bottom: 54 };
       const innerW = w - pad.left - pad.right;
       const innerH = h - pad.top - pad.bottom;
@@ -858,7 +820,7 @@
       const el = document.getElementById("lineChart");
       const d = DATA[active];
       const w = Math.max(620, el.clientWidth || 820);
-      const h = 300;
+      const h = 350;
       const pad = { left: 46, right: 18, top: 20, bottom: 44 };
       const innerW = w - pad.left - pad.right;
       const innerH = h - pad.top - pad.bottom;
